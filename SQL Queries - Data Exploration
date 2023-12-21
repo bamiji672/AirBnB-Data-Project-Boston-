@@ -1,0 +1,138 @@
+1. Most Demanded Property Type in Boston - this data provide insights into the preferences and demands of the real estate market in Boston.
+
+       Select top  20 property_type as [Property Type], 
+        count(property_type) as [No. of Listings]
+        from listings
+        group by property_type
+        order by [No. of Listings] desc
+
+2. Least-in-demand by Property Type - 
+
+        Select top  20 property_type as [Property Type], 
+        count(property_type) as [No. of Listings]
+        from listings
+        group by property_type
+        order by [No. of Listings] asc
+
+3. Top 10 Neighborhood by Average Yearly Revenue - This shows neighborhoods where investors get the highest average yearly revenue and provides insight into neighborhood with the highest earning and growth potential.
+
+        select top 10 neighbourhood_cleansed as [Neighborhood], 
+        avg ((365-availability_365)*price) as [Average Yearly Revenue]
+        from listings
+        
+        group by neighbourhood_cleansed
+        order by [Average Yearly Revenue] desc
+
+4. Most Expensive Neighborhoods - Shows the neighborhoods with the most expensive prices, and the most common type of property in each of these neighborhoods.
+
+        With 
+        RankedNeighborhood as (
+        		
+        	select
+        		neighbourhood_cleansed as [Neighborhood],
+        		room_type as [Property Type],
+        		avg(price)  as [Average Room Price],
+        		count (room_type) as [no. of Listings],
+        		ROW_NUMBER() OVER (PARTITION BY neighbourhood_cleansed ORDER BY COUNT(room_type) DESC) AS RankWithinNeighborhood
+        	from listings
+        	group by neighbourhood_cleansed, room_type
+        )
+        
+        select top 10
+        	[Neighborhood],
+            [Property Type],
+        	[Average Room Price],
+            [No. of Listings]
+        FROM
+            RankedNeighborhood
+        WHERE
+            RankWithinNeighborhood = 1
+        Order by 
+        	[Average Room Price] desc
+
+5. Most common type of property in all Boston - This shows a rank of each type of property in boston and total number of them that are listed.
+
+        select
+        	room_type as [Property Type],
+        	count (room_type) as [No. of Listings]
+        from listings
+        group by room_type
+        order by [No. of Listings] desc
+
+6. Neighborhoods with the most Number of Listings - this extracts a list of the top 10 neighborhoods using the number of properties listed in them. 
+
+        select top 10 neighbourhood_cleansed as [Neighborhood], 
+        count (id) as [No. of Listings]
+        from listings
+        
+        group by neighbourhood_cleansed
+        order by count(id) desc
+
+7. Top 10 Hosts by Number of Listings - This shows the top 10 hosts in the Boston Area using the number of properties they have listed. 
+
+        Select top 10 host_name as [Host Name], 
+        count(id) as [No. of Listings]
+        from listings
+        group by host_name
+        order by [No. of Listings] desc
+
+8. Top 10 Neighborhood + Top Host - This shows the top 10 neighborhoods by number of properties they have listed in the Boston Area, and the host with the highest number of property in the area. 
+
+        WITH RankedHosts AS (
+            SELECT 
+                neighbourhood_cleansed AS Neighborhood,
+                host_name AS [TopHost],
+                COUNT(id) AS [No. of Listings],
+                ROW_NUMBER() OVER (PARTITION BY neighbourhood_cleansed ORDER BY COUNT(id) DESC) AS RankWithinNeighborhood
+            FROM
+                listings
+            GROUP BY
+                neighbourhood_cleansed, host_name
+        )
+        
+        SELECT top 10
+            Neighborhood,
+            TopHost,
+            [No. of Listings]
+        FROM
+            RankedHosts
+        WHERE
+            RankWithinNeighborhood = 1
+
+9. Top 10 Hosts By Review Scores - This provides general insight into the top hosts by review scores. Further insights can be gleaned from this by visualising the table 
+to know of there is a correlation between average score and average revenue, in other words, do those whose scores are high enjoy higher revenue and the ones with lower score enjoy
+lower revenue.
+
+        select top 10 host_name as [Name of Host], 
+        	round (avg (review_scores_rating),2) as [Average Score], 
+        	count (review_scores_rating) as [No. of Reviews],
+        	round(avg ((365-availability_365)*price),2) as [Average Yearly Revenue]
+        from listings
+        
+        group by host_name
+        having count(review_scores_rating) >5
+        order by [Average Score] desc
+
+10. Highest and Lowest Earning Hosts 
+Top
+        select top 10 host_name as [Host Name], 
+        	count(host_name) as [Number of Houses], 
+        	sum ((365- availability_365)*price) as [Yearly Revenue],
+        	avg ((365- availability_365)*price) as [Avg. Yearly Revenue]
+        from listings
+        
+        group by host_name
+        order by [Yearly Revenue] desc
+Lowest
+        select 
+        	top 10 host_name as [Host], 
+        	count(host_name) as [No. of Houses], 
+        	sum((365-availability_365)*price) as [Yearly Revenue]
+        from listings
+        
+        group by host_name
+        having sum((365-availability_365)*price) <> 0 
+        Order by [Yearly Revenue] asc
+
+
+
