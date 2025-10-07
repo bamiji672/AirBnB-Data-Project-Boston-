@@ -1,6 +1,6 @@
 1. Most Demanded Property Type in Boston - this data provide insights into the preferences and demands of the real estate market in Boston.
 
-       Select top  20 property_type as [Property Type], 
+        Select top  20 property_type as [Property Type], 
         count(property_type) as [No. of Listings]
         from listings
         group by property_type
